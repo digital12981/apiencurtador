@@ -49,16 +49,34 @@ export class DatabaseStorage implements IStorage {
     // Generate a slug if not provided
     let slug = customSlug;
     if (!slug) {
-      // Generate a relatively short but unique slug (7 chars)
-      slug = nanoid(7);
+      // Generate a 4-character slug with lowercase letters only
+      const generateShortSlug = () => {
+        const letters = 'abcdefghijklmnopqrstuvwxyz';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+          result += letters.charAt(Math.floor(Math.random() * letters.length));
+        }
+        return result;
+      };
+      
+      // Generate initial slug
+      slug = generateShortSlug();
       
       // Check if slug exists
       const existingUrl = await this.getUrlBySlug(slug);
       if (existingUrl) {
-        // If collision, regenerate
+        // If collision, regenerate (retry)
         return this.createUrl(originalUrl);
       }
     } else {
+      // Check if custom slug is too long
+      if (slug.length > 4) {
+        throw new Error("Custom slug must be a maximum of 4 characters");
+      }
+      
+      // Convert custom slug to lowercase
+      slug = slug.toLowerCase();
+      
       // Check if custom slug is already in use
       const existingUrl = await this.getUrlBySlug(slug);
       if (existingUrl) {
@@ -167,8 +185,8 @@ export class DatabaseStorage implements IStorage {
       .from(browsers)
       .where(eq(browsers.urlId, url.id));
     
-    // Get base URL for constructing the short URL
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    // Use configured domain for short URLs
+    const baseUrl = 'https://vivo.operadora.inc';
     
     return {
       slug: url.slug,

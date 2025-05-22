@@ -112,9 +112,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create shortened URL
         const shortenedUrl = await storage.createUrl(url, customSlug);
         
-        // Get base URL for constructing the short URL
-        const baseUrl = process.env.BASE_URL || 
-                        `http://${req.headers.host || 'localhost:5000'}`;
+        // Use configured domain for short URLs
+        const baseUrl = 'https://vivo.operadora.inc';
         
         // Return success response
         res.status(200).json({
@@ -169,9 +168,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create shortened URL
         const shortenedUrl = await storage.createUrl(url, customSlug);
         
-        // Get base URL for constructing the short URL
-        const baseUrl = process.env.BASE_URL || 
-                        `http://${req.headers.host || 'localhost:5000'}`;
+        // Use configured domain for short URLs
+        const baseUrl = 'https://vivo.operadora.inc';
         
         // Return success response
         res.status(200).json({
@@ -244,9 +242,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const urls = await storage.getAllUrls();
       
-      // Format response
-      const baseUrl = process.env.BASE_URL || 
-                     `http://${_req.headers.host || 'localhost:5000'}`;
+      // Use configured domain for short URLs
+      const baseUrl = 'https://vivo.operadora.inc';
       
       const formattedUrls = urls.map(url => ({
         slug: url.slug,

@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import path from "path";
 import { storage } from "./storage";
 import { shortenUrlSchema } from "@shared/schema";
 import { ZodError } from "zod";
@@ -92,6 +93,11 @@ function parseReferrer(req: Request): string | undefined {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve the static HTML page
+  app.get("/", (req: Request, res: Response) => {
+    res.sendFile(path.join(process.cwd(), "index.html"));
+  });
+  
   // Add API Routes
   
   // 1. Shorten URL endpoint
@@ -174,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // 3. Get all URLs (for dashboard) - would typically require authentication
+  // 3. Get all URLs (for dashboard)
   app.get("/api/urls", validateApiKey, rateLimiter, async (_req: Request, res: Response) => {
     try {
       const urls = await storage.getAllUrls();

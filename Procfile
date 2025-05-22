@@ -1,1 +1,1 @@
-web: npm install -g vite esbuild && npm run build && npm start
+web: npm start

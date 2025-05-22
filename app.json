@@ -1,0 +1,28 @@
+{
+  "name": "ShortLink API",
+  "description": "Uma API de encurtamento de URLs",
+  "keywords": [
+    "url shortener",
+    "api",
+    "node",
+    "express",
+    "postgresql"
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Define o ambiente de execução",
+      "value": "production"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev",
+      "as": "DATABASE"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}

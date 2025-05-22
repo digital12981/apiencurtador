@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação da API de Encurtamento de URLs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+        h2 {
+            margin-top: 30px;
+            color: #2c3e50;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-weight: bold;
+            color: white;
+        }
+        .post {
+            background-color: #4CAF50;
+        }
+        .get {
+            background-color: #2196F3;
+        }
+        .endpoint-url {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-weight: bold;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Documentação da API de Encurtamento de URLs</h1>
+        
+        <p>Esta API permite criar URLs encurtadas e obter estatísticas sobre elas.</p>
+        
+        <div class="note">
+            <p><strong>Nota:</strong> Todas as requisições para a API devem incluir a chave de API no cabeçalho <code>X-API-Key</code>.</p>
+            <p>Para uso em testes, use a chave: <code>demo-api-key</code></p>
+        </div>
+        
+        <h2>Endpoints</h2>
+        
+        <div class="endpoint">
+            <h3>
+                <span class="method post">POST</span>
+                <span class="endpoint-url">/api/shorten</span>
+            </h3>
+            <p>Cria uma URL encurtada a partir de uma URL longa.</p>
+            
+            <h4>Cabeçalhos Obrigatórios</h4>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>Valor</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td>Content-Type</td>
+                    <td>application/json</td>
+                    <td>Tipo de conteúdo do corpo da requisição</td>
+                </tr>
+                <tr>
+                    <td>X-API-Key</td>
+                    <td>demo-api-key</td>
+                    <td>Chave de autenticação da API</td>
+                </tr>
+            </table>
+            
+            <h4>Corpo da Requisição</h4>
+            <pre>{
+  "url": "https://exemplo.com/pagina-muito-longa",
+  "customSlug": "meu-link" // Opcional
+}</pre>
+            
+            <h4>Resposta de Sucesso (200 OK)</h4>
+            <pre>{
+  "success": true,
+  "shortUrl": "http://localhost:5000/abc123",
+  "originalUrl": "https://exemplo.com/pagina-muito-longa",
+  "created": "2023-05-22T04:30:00.000Z",
+  "expiresAt": null
+}</pre>
+            
+            <h4>Resposta de Erro (409 Conflict)</h4>
+            <pre>{
+  "error": "Conflict",
+  "details": "The requested custom slug is already in use"
+}</pre>
+        </div>
+        
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                <span class="endpoint-url">/api/stats/{slug}</span>
+            </h3>
+            <p>Obtém estatísticas sobre uma URL encurtada específica.</p>
+            
+            <h4>Cabeçalhos Obrigatórios</h4>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>Valor</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td>X-API-Key</td>
+                    <td>demo-api-key</td>
+                    <td>Chave de autenticação da API</td>
+                </tr>
+            </table>
+            
+            <h4>Parâmetros de URL</h4>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td>slug</td>
+                    <td>O identificador único da URL encurtada</td>
+                </tr>
+            </table>
+            
+            <h4>Resposta de Sucesso (200 OK)</h4>
+            <pre>{
+  "slug": "abc123",
+  "originalUrl": "https://exemplo.com/pagina-muito-longa",
+  "shortUrl": "http://localhost:5000/abc123",
+  "created": "2023-05-22T04:30:00.000Z",
+  "clicks": 42,
+  "lastClickedAt": "2023-05-22T05:45:12.000Z",
+  "referrers": [
+    {
+      "domain": "google.com",
+      "count": 15
+    },
+    {
+      "domain": "twitter.com",
+      "count": 8
+    }
+  ],
+  "browsers": [
+    {
+      "name": "Chrome",
+      "count": 25
+    },
+    {
+      "name": "Firefox",
+      "count": 10
+    }
+  ]
+}</pre>
+            
+            <h4>Resposta de Erro (404 Not Found)</h4>
+            <pre>{
+  "error": "Not Found",
+  "details": "The requested shortened URL does not exist"
+}</pre>
+        </div>
+        
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                <span class="endpoint-url">/api/urls</span>
+            </h3>
+            <p>Lista todas as URLs encurtadas.</p>
+            
+            <h4>Cabeçalhos Obrigatórios</h4>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>Valor</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td>X-API-Key</td>
+                    <td>demo-api-key</td>
+                    <td>Chave de autenticação da API</td>
+                </tr>
+            </table>
+            
+            <h4>Resposta de Sucesso (200 OK)</h4>
+            <pre>[
+  {
+    "slug": "abc123",
+    "shortUrl": "http://localhost:5000/abc123",
+    "originalUrl": "https://exemplo.com/pagina-muito-longa",
+    "clicks": 42,
+    "created": "2023-05-22T04:30:00.000Z",
+    "lastClickedAt": "2023-05-22T05:45:12.000Z"
+  },
+  {
+    "slug": "def456",
+    "shortUrl": "http://localhost:5000/def456",
+    "originalUrl": "https://outro-exemplo.com/outra-pagina",
+    "clicks": 17,
+    "created": "2023-05-22T06:15:00.000Z",
+    "lastClickedAt": "2023-05-22T07:20:45.000Z"
+  }
+]</pre>
+        </div>
+        
+        <div class="endpoint">
+            <h3>
+                <span class="method get">GET</span>
+                <span class="endpoint-url">/{slug}</span>
+            </h3>
+            <p>Redireciona para a URL original correspondente ao slug.</p>
+            
+            <h4>Parâmetros de URL</h4>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                </tr>
+                <tr>
+                    <td>slug</td>
+                    <td>O identificador único da URL encurtada</td>
+                </tr>
+            </table>
+            
+            <h4>Resposta de Sucesso (302 Found)</h4>
+            <p>Redireciona para a URL original.</p>
+            
+            <h4>Resposta de Erro (404 Not Found)</h4>
+            <p>Retorna uma página de erro 404 se o slug não existir.</p>
+        </div>
+        
+        <h2>Exemplos de Uso</h2>
+        
+        <h3>Criando uma URL encurtada com curl</h3>
+        <pre>curl -X POST https://seu-dominio.com/api/shorten \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: demo-api-key" \
+     -d '{
+       "url": "https://exemplo.com/pagina-muito-longa",
+       "customSlug": "meu-link"
+     }'</pre>
+        
+        <h3>Obtendo estatísticas com curl</h3>
+        <pre>curl -X GET https://seu-dominio.com/api/stats/meu-link \
+     -H "X-API-Key: demo-api-key"</pre>
+        
+        <h3>Listando todas as URLs com curl</h3>
+        <pre>curl -X GET https://seu-dominio.com/api/urls \
+     -H "X-API-Key: demo-api-key"</pre>
+    </div>
+</body>
+</html>

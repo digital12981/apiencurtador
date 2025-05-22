@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API de Encurtamento de URLs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        h1 {
+            text-align: center;
+            margin: 0;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            border: 1px solid #ddd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-right: 10px;
+            font-weight: bold;
+            color: white;
+        }
+        .post {
+            background-color: #4CAF50;
+        }
+        .get {
+            background-color: #2196F3;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="url"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>API de Encurtamento de URLs</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Integração Sem Token</h2>
+            <div class="alert alert-info">
+                <p>Teste o encurtador diretamente aqui! Não é necessário nenhum token ou autenticação.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="api-url">URL para encurtar:</label>
+                <input type="url" id="api-url" placeholder="https://exemplo.com/pagina-longa" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="api-slug">Slug personalizado (opcional):</label>
+                <input type="text" id="api-slug" placeholder="meu-link">
+            </div>
+            
+            <button id="shorten-api-btn" class="btn">Encurtar URL</button>
+            
+            <div class="result" id="api-result">
+                <h3>Resultado:</h3>
+                <pre id="api-response"></pre>
+                <button id="api-copy-btn" class="btn">Copiar URL</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Documentação da API</h2>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="intro">Introdução</div>
+                <div class="tab" data-tab="endpoints">Endpoints</div>
+                <div class="tab" data-tab="examples">Exemplos</div>
+            </div>
+            
+            <div class="tab-content active" id="intro">
+                <p>Esta API permite criar URLs encurtadas e obter estatísticas sobre elas. Você pode usá-la de duas formas:</p>
+                <ol>
+                    <li><strong>Sem token</strong>: Use o endpoint <code>/api/public/shorten</code> para criar URLs encurtadas sem autenticação.</li>
+                    <li><strong>Com token</strong>: Use os endpoints principais com o cabeçalho <code>X-API-Key</code> para funcionalidades avançadas.</li>
+                </ol>
+                <p>Para uso em testes com token, use a chave: <code>demo-api-key</code></p>
+            </div>
+            
+            <div class="tab-content" id="endpoints">
+                <h3><span class="method post">POST</span> /api/public/shorten</h3>
+                <p>Cria uma URL encurtada sem necessidade de autenticação.</p>
+                <h4>Corpo da Requisição</h4>
+                <pre>{
+  "url": "https://exemplo.com/pagina-muito-longa",
+  "customSlug": "meu-link" // Opcional
+}</pre>
+                <h4>Resposta</h4>
+                <pre>{
+  "success": true,
+  "shortUrl": "http://seu-dominio.com/abc123",
+  "originalUrl": "https://exemplo.com/pagina-muito-longa"
+}</pre>
+                
+                <h3><span class="method post">POST</span> /api/shorten</h3>
+                <p>Cria uma URL encurtada (requer token).</p>
+                <h4>Cabeçalhos</h4>
+                <pre>X-API-Key: demo-api-key</pre>
+                <h4>Corpo da Requisição</h4>
+                <pre>{
+  "url": "https://exemplo.com/pagina-muito-longa",
+  "customSlug": "meu-link" // Opcional
+}</pre>
+                
+                <h3><span class="method get">GET</span> /api/stats/{slug}</h3>
+                <p>Obtém estatísticas sobre uma URL encurtada (requer token).</p>
+                <h4>Cabeçalhos</h4>
+                <pre>X-API-Key: demo-api-key</pre>
+                
+                <h3><span class="method get">GET</span> /api/urls</h3>
+                <p>Lista todas as URLs encurtadas (requer token).</p>
+                <h4>Cabeçalhos</h4>
+                <pre>X-API-Key: demo-api-key</pre>
+                
+                <h3><span class="method get">GET</span> /{slug}</h3>
+                <p>Redireciona para a URL original.</p>
+            </div>
+            
+            <div class="tab-content" id="examples">
+                <h3>Exemplo com JavaScript</h3>
+                <pre>// Usando o endpoint público (sem token)
+fetch('/api/public/shorten', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    url: 'https://exemplo.com/pagina-muito-longa',
+    customSlug: 'meu-link' // opcional
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Erro:', error));</pre>
+                
+                <h3>Exemplo com cURL</h3>
+                <pre>// Endpoint público (sem token)
+curl -X POST https://seu-dominio.com/api/public/shorten \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://exemplo.com/pagina-muito-longa",
+    "customSlug": "meu-link"
+  }'
+
+// Endpoint com token
+curl -X POST https://seu-dominio.com/api/shorten \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: demo-api-key" \
+  -d '{
+    "url": "https://exemplo.com/pagina-muito-longa",
+    "customSlug": "meu-link"
+  }'</pre>
+                
+                <h3>Exemplo com Python</h3>
+                <pre>import requests
+import json
+
+# Endpoint público (sem token)
+url = 'https://seu-dominio.com/api/public/shorten'
+data = {
+    'url': 'https://exemplo.com/pagina-muito-longa',
+    'customSlug': 'meu-link'  # opcional
+}
+
+response = requests.post(url, json=data)
+print(response.json())</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Hide all tab content
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Show selected tab content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // API Test functionality
+            const shortenApiBtn = document.getElementById('shorten-api-btn');
+            const apiResult = document.getElementById('api-result');
+            const apiResponse = document.getElementById('api-response');
+            const apiCopyBtn = document.getElementById('api-copy-btn');
+            
+            shortenApiBtn.addEventListener('click', async function() {
+                const url = document.getElementById('api-url').value;
+                const customSlug = document.getElementById('api-slug').value;
+                
+                if (!url) {
+                    alert('Por favor, insira uma URL válida');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/public/shorten', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            url: url,
+                            customSlug: customSlug || undefined
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.details || 'Erro ao encurtar URL');
+                    }
+                    
+                    const data = await response.json();
+                    apiResponse.textContent = JSON.stringify(data, null, 2);
+                    apiResult.style.display = 'block';
+                } catch (error) {
+                    apiResponse.textContent = 'Erro: ' + error.message;
+                    apiResult.style.display = 'block';
+                }
+            });
+            
+            apiCopyBtn.addEventListener('click', function() {
+                try {
+                    const responseData = JSON.parse(apiResponse.textContent);
+                    navigator.clipboard.writeText(responseData.shortUrl)
+                        .then(() => {
+                            apiCopyBtn.textContent = 'Copiado!';
+                            setTimeout(() => {
+                                apiCopyBtn.textContent = 'Copiar URL';
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Erro ao copiar: ', err);
+                        });
+                } catch (e) {
+                    console.error('Erro ao analisar resposta: ', e);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -93,9 +93,68 @@ function parseReferrer(req: Request): string | undefined {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Serve the static HTML page
+  // Serve the static HTML pages
   app.get("/", (req: Request, res: Response) => {
     res.sendFile(path.join(process.cwd(), "index.html"));
+  });
+  
+  app.get("/api", (req: Request, res: Response) => {
+    res.sendFile(path.join(process.cwd(), "api.html"));
+  });
+  
+  // API endpoint without token authentication
+  app.post("/api/public/shorten", async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const { url, customSlug } = shortenUrlSchema.parse(req.body);
+      
+      try {
+        // Create shortened URL
+        const shortenedUrl = await storage.createUrl(url, customSlug);
+        
+        // Get base URL for constructing the short URL
+        const baseUrl = process.env.BASE_URL || 
+                        `http://${req.headers.host || 'localhost:5000'}`;
+        
+        // Return success response
+        res.status(200).json({
+          success: true,
+          shortUrl: `${baseUrl}/${shortenedUrl.slug}`,
+          originalUrl: shortenedUrl.originalUrl,
+          created: shortenedUrl.createdAt.toISOString()
+        });
+      } catch (error) {
+        // Handle duplicate slug error
+        if (error instanceof Error && error.message.includes("already in use")) {
+          return res.status(409).json({
+            error: "Conflict",
+            details: "The requested custom slug is already in use"
+          });
+        }
+        
+        // Handle other errors
+        console.error("Error creating shortened URL:", error);
+        res.status(500).json({
+          error: "Internal Server Error",
+          details: "An error occurred while creating the shortened URL"
+        });
+      }
+    } catch (error) {
+      // Handle validation errors
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({
+          error: "Bad Request",
+          details: validationError.message
+        });
+      }
+      
+      // Handle other errors
+      console.error("Error processing request:", error);
+      res.status(500).json({
+        error: "Internal Server Error"
+      });
+    }
   });
   
   // Add API Routes

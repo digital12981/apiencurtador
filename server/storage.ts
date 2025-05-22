@@ -11,9 +11,10 @@ import {
   type UrlStats
 } from "@shared/schema";
 import { nanoid } from "nanoid";
+import { db } from "./db";
+import { eq, desc, sql } from "drizzle-orm";
 
-// modify the interface with any CRUD methods
-// you might need
+// Keep the storage interface the same
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -27,142 +28,144 @@ export interface IStorage {
   getUrlStats(slug: string): Promise<UrlStats | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private urls: Map<string, Url>; // Map by slug for fast lookup
-  private urlsById: Map<number, Url>; // Map by ID
-  private referrers: Map<number, Referrer[]>; // Map urlId to referrer array
-  private browsers: Map<number, Browser[]>; // Map urlId to browser array
-  
-  currentId: number;
-  urlCurrentId: number;
-  referrerCurrentId: number;
-  browserCurrentId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.urls = new Map();
-    this.urlsById = new Map();
-    this.referrers = new Map();
-    this.browsers = new Map();
-    
-    this.currentId = 1;
-    this.urlCurrentId = 1;
-    this.referrerCurrentId = 1;
-    this.browserCurrentId = 1;
-  }
-
+// Implement the database storage
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
   
-  // URL shortener methods
   async createUrl(originalUrl: string, customSlug?: string): Promise<Url> {
-    // Generate a slug if not provided, ensuring it's unique
+    // Generate a slug if not provided
     let slug = customSlug;
     if (!slug) {
       // Generate a relatively short but unique slug (7 chars)
-      do {
-        slug = nanoid(7);
-      } while (this.urls.has(slug));
-    } else if (this.urls.has(slug)) {
-      throw new Error("This custom slug is already in use");
+      slug = nanoid(7);
+      
+      // Check if slug exists
+      const existingUrl = await this.getUrlBySlug(slug);
+      if (existingUrl) {
+        // If collision, regenerate
+        return this.createUrl(originalUrl);
+      }
+    } else {
+      // Check if custom slug is already in use
+      const existingUrl = await this.getUrlBySlug(slug);
+      if (existingUrl) {
+        throw new Error("This custom slug is already in use");
+      }
     }
     
-    const id = this.urlCurrentId++;
-    const now = new Date();
-    const url: Url = {
-      id,
+    // Insert the URL
+    const [url] = await db.insert(urls).values({
       originalUrl,
       slug,
       clicks: 0,
-      createdAt: now,
+      createdAt: new Date(),
       lastClickedAt: null,
       userId: null
-    };
-    
-    this.urls.set(slug, url);
-    this.urlsById.set(id, url);
-    this.referrers.set(id, []);
-    this.browsers.set(id, []);
+    }).returning();
     
     return url;
   }
   
   async getUrlBySlug(slug: string): Promise<Url | undefined> {
-    return this.urls.get(slug);
+    const [url] = await db.select().from(urls).where(eq(urls.slug, slug));
+    return url;
   }
   
   async incrementUrlClicks(slug: string, referrer?: string, browserName?: string): Promise<void> {
-    const url = this.urls.get(slug);
+    // Get URL
+    const url = await this.getUrlBySlug(slug);
     if (!url) return;
     
     // Update click count and timestamp
-    url.clicks += 1;
-    url.lastClickedAt = new Date();
+    await db.update(urls)
+      .set({ 
+        clicks: url.clicks + 1,
+        lastClickedAt: new Date()
+      })
+      .where(eq(urls.id, url.id));
     
     // Update referrer if available
     if (referrer) {
-      const referrers = this.referrers.get(url.id) || [];
-      const existingReferrer = referrers.find(r => r.domain === referrer);
+      // Check if referrer exists
+      const existingReferrers = await db.select()
+        .from(referrers)
+        .where(eq(referrers.urlId, url.id));
+      
+      const existingReferrer = existingReferrers.find(r => r.domain === referrer);
       
       if (existingReferrer) {
-        existingReferrer.count += 1;
+        // Update count
+        await db.update(referrers)
+          .set({ count: existingReferrer.count + 1 })
+          .where(eq(referrers.id, existingReferrer.id));
       } else {
-        referrers.push({
-          id: this.referrerCurrentId++,
+        // Insert new referrer
+        await db.insert(referrers).values({
           urlId: url.id,
           domain: referrer,
           count: 1
         });
       }
-      
-      this.referrers.set(url.id, referrers);
     }
     
     // Update browser stats if available
     if (browserName) {
-      const browsers = this.browsers.get(url.id) || [];
-      const existingBrowser = browsers.find(b => b.name === browserName);
+      // Check if browser exists
+      const existingBrowsers = await db.select()
+        .from(browsers)
+        .where(eq(browsers.urlId, url.id));
+      
+      const existingBrowser = existingBrowsers.find(b => b.name === browserName);
       
       if (existingBrowser) {
-        existingBrowser.count += 1;
+        // Update count
+        await db.update(browsers)
+          .set({ count: existingBrowser.count + 1 })
+          .where(eq(browsers.id, existingBrowser.id));
       } else {
-        browsers.push({
-          id: this.browserCurrentId++,
+        // Insert new browser
+        await db.insert(browsers).values({
           urlId: url.id,
           name: browserName,
           count: 1
         });
       }
-      
-      this.browsers.set(url.id, browsers);
     }
   }
   
   async getAllUrls(limit = 10): Promise<Url[]> {
-    // Convert to array, sort by creation date (newest first) and limit
-    return Array.from(this.urlsById.values())
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, limit);
+    return db.select()
+      .from(urls)
+      .orderBy(desc(urls.createdAt))
+      .limit(limit);
   }
   
   async getUrlStats(slug: string): Promise<UrlStats | undefined> {
-    const url = this.urls.get(slug);
+    const url = await this.getUrlBySlug(slug);
     if (!url) return undefined;
+    
+    // Get referrers
+    const urlReferrers = await db.select()
+      .from(referrers)
+      .where(eq(referrers.urlId, url.id));
+    
+    // Get browsers
+    const urlBrowsers = await db.select()
+      .from(browsers)
+      .where(eq(browsers.urlId, url.id));
     
     // Get base URL for constructing the short URL
     const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
@@ -174,11 +177,11 @@ export class MemStorage implements IStorage {
       created: url.createdAt.toISOString(),
       clicks: url.clicks,
       lastClickedAt: url.lastClickedAt ? url.lastClickedAt.toISOString() : null,
-      referrers: (this.referrers.get(url.id) || []).map(r => ({
+      referrers: urlReferrers.map(r => ({
         domain: r.domain,
         count: r.count
       })),
-      browsers: (this.browsers.get(url.id) || []).map(b => ({
+      browsers: urlBrowsers.map(b => ({
         name: b.name,
         count: b.count
       }))
@@ -186,4 +189,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use database storage instead of memory storage
+export const storage = new DatabaseStorage();

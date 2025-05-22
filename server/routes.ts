@@ -1,10 +1,23 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { shortenUrlSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { parseUserAgent } from "./user-agent";
+
+// Add simple user agent parser function directly in this file
+function parseUserAgent(userAgent: string): string {
+  if (!userAgent) return "Unknown";
+  
+  if (userAgent.includes("Chrome")) return "Chrome";
+  if (userAgent.includes("Firefox")) return "Firefox";
+  if (userAgent.includes("Safari")) return "Safari";
+  if (userAgent.includes("Edge")) return "Edge";
+  if (userAgent.includes("MSIE") || userAgent.includes("Trident/")) return "Internet Explorer";
+  if (userAgent.includes("Opera") || userAgent.includes("OPR/")) return "Opera";
+  
+  return "Other";
+}
 
 // Rate limiting implementation
 type RateLimitEntry = {
@@ -222,17 +235,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-// Add a simple user agent parser
-export function parseUserAgent(userAgent: string): string {
-  // Add this function to a new file server/user-agent.ts
-  if (!userAgent) return "Unknown";
-  
-  if (userAgent.includes("Chrome")) return "Chrome";
-  if (userAgent.includes("Firefox")) return "Firefox";
-  if (userAgent.includes("Safari")) return "Safari";
-  if (userAgent.includes("Edge")) return "Edge";
-  if (userAgent.includes("MSIE") || userAgent.includes("Trident/")) return "Internet Explorer";
-  if (userAgent.includes("Opera") || userAgent.includes("OPR/")) return "Opera";
-  
-  return "Other";
-}
+// Additional utility functions can be added here

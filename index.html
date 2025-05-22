@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encurtador de URL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="url"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .short-url {
+            font-weight: bold;
+            color: #2196F3;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background-color: #2196F3;
+            margin-top: 10px;
+        }
+        .copy-btn:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Encurtador de URL</h1>
+        
+        <div class="form-group">
+            <label for="long-url">Digite a URL para encurtar:</label>
+            <input type="url" id="long-url" placeholder="https://exemplo.com/minha-url-longa" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="custom-slug">Slug personalizado (opcional):</label>
+            <input type="text" id="custom-slug" placeholder="meu-link">
+        </div>
+        
+        <button id="shorten-btn">Encurtar URL</button>
+        
+        <div class="result" id="result">
+            <p>Sua URL encurtada:</p>
+            <p class="short-url" id="short-url"></p>
+            <button class="copy-btn" id="copy-btn">Copiar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const shortenBtn = document.getElementById('shorten-btn');
+            const resultDiv = document.getElementById('result');
+            const shortUrlElem = document.getElementById('short-url');
+            const copyBtn = document.getElementById('copy-btn');
+            
+            shortenBtn.addEventListener('click', async function() {
+                const longUrl = document.getElementById('long-url').value;
+                const customSlug = document.getElementById('custom-slug').value;
+                
+                if (!longUrl) {
+                    alert('Por favor, insira uma URL válida');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/shorten', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'demo-api-key'
+                        },
+                        body: JSON.stringify({
+                            url: longUrl,
+                            customSlug: customSlug || undefined
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.details || 'Erro ao encurtar URL');
+                    }
+                    
+                    const data = await response.json();
+                    shortUrlElem.textContent = data.shortUrl;
+                    resultDiv.style.display = 'block';
+                } catch (error) {
+                    alert('Erro: ' + error.message);
+                }
+            });
+            
+            copyBtn.addEventListener('click', function() {
+                const shortUrl = shortUrlElem.textContent;
+                navigator.clipboard.writeText(shortUrl)
+                    .then(() => {
+                        copyBtn.textContent = 'Copiado!';
+                        setTimeout(() => {
+                            copyBtn.textContent = 'Copiar';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Erro ao copiar: ', err);
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

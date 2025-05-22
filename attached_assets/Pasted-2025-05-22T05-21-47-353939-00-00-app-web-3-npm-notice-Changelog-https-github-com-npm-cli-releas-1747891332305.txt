@@ -1,0 +1,12 @@
+2025-05-22T05:21:47.353939+00:00 app[web.3]: npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.1
+2025-05-22T05:21:47.353939+00:00 app[web.3]: npm notice To update run: npm install -g npm@11.4.1
+2025-05-22T05:21:47.353940+00:00 app[web.3]: npm notice
+2025-05-22T05:21:47.424984+00:00 heroku[web.3]: Process exited with status 1
+2025-05-22T05:21:47.458578+00:00 heroku[web.3]: State changed from starting to crashed
+2025-05-22T05:21:48.413161+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/" host=vivo.operadora.inc request_id=e1b2cef5-3d3c-45e2-a4f9-6cad44c27132 fwd="54.208.231.227" dyno= connect= service= status=503 bytes= protocol=https
+2025-05-22T05:21:48.813682+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/" host=vivo.operadora.inc request_id=1e48df33-e912-4c40-80ae-71fae9af0d03 fwd="201.87.253.93" dyno= connect= service= status=503 bytes= protocol=https
+2025-05-22T05:21:49.375911+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/favicon.ico" host=vivo.operadora.inc request_id=92cadc5e-cf94-4423-be52-190b601fb806 fwd="201.87.253.93" dyno= connect= service= status=503 bytes= protocol=https
+2025-05-22T05:21:51.219489+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/" host=vivo.operadora.inc request_id=ea8318e1-c1f8-40f4-87f0-b59494ed5f32 fwd="201.87.253.93" dyno= connect= service= status=503 bytes= protocol=https
+2025-05-22T05:21:51.500119+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/favicon.ico" host=vivo.operadora.inc request_id=781cbf0e-c29c-4790-a444-6d9c482e9168 fwd="201.87.253.93" dyno= connect= service= status=503 bytes= protocol=https
+2025-05-22T05:21:57.948060+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/" host=vivo.operadora.inc request_id=53623c62-fdee-4d16-99bb-db3a96d88495 fwd="201.87.253.93" dyno= connect= service= status=503 bytes= protocol=https
+2025-05-22T05:21:58.231254+00:00 heroku[router]: at=error code=H10 desc="App crashed" method=GET path="/favicon.ico" host=vivo.operadora.inc request_id=77639867-c803-4a18-ab5b-1851a5fd0078 fwd="201.87.253.93" dyno= connect= service= status=503 bytes= protocol=https

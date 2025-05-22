@@ -1,0 +1,11 @@
+# Arquivos que não são necessários para o ambiente de produção
+/client/src
+/server/vite.ts
+/.github
+/test
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+/docs
+README.md
